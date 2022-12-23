@@ -1,5 +1,6 @@
 import ipaddress
 import argparse
+import pathlib
 import csv
 
 
@@ -15,6 +16,17 @@ TIMEZONE = 9
 
 def range_to_cidr(start_ip, end_ip):
     return [ipaddr for ipaddr in ipaddress.summarize_address_range(start_ip, end_ip)]
+
+
+def save_to_file(output_file, output_data):
+    while True:
+        try:
+            with open(output_file, "w") as f:
+                for line in output_data:
+                    f.write(line + "\n")
+            break
+        except FileNotFoundError:
+            pathlib.Path(output_file).touch()
 
 
 def main():
@@ -100,7 +112,11 @@ def main():
     # Remove dupes
     cidr_list = list(set(cidr_list))
 
-    print(cidr_list)
+    if args.output_file != "":
+        save_to_file(args.output_file, cidr_list)
+    else:
+        for cidr in cidr_list:
+            print(cidr)
 
 
 if __name__ == "__main__":
@@ -128,6 +144,9 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--timezones", dest="timezones", help="List of Timezones", nargs="+"
+    )
+    parser.add_argument(
+        "-o", "--output", dest="output_file", help="Output file", type=str, default=""
     )
 
     args = parser.parse_args()
